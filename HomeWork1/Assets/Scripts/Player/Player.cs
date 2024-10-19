@@ -6,12 +6,12 @@ using UnityEngine.TextCore.Text;
 
 namespace ShootEmUp
 {
-
     public sealed class Player : Entity
     {
+        
         public Action<Player, int> OnHealthChanged;
         public Action<Player> OnHealthEmpty;
-
+        public Action OnHealthEmptyz;
         public event Action<BallLightning> OnPlayerShoot;
 
         private IController _moveController = new MoveController();
@@ -25,15 +25,23 @@ namespace ShootEmUp
         {
            _bullet = GetComponent<BallLightning>();
         }
+
         private void Update()
         {
             _fireRequired = _shootController.Shoot();
             _moveDirection = _moveController.Move();
-        }
-        private void FixedUpdate()
-        {
             Shoot();
             Move();
+
+            if (health <= 0)
+            {
+                OnHealthEmptyz?.Invoke();
+            }
+        }
+
+        public Transform GetPosition()
+        {
+            return this.transform;
         }
 
         protected override void Move()
@@ -43,8 +51,8 @@ namespace ShootEmUp
             Vector2 moveStep = moveDirection * Time.fixedDeltaTime * this.speed;
             Vector2 targetPosition = this._rigidbody.position + moveStep;
             this._rigidbody.MovePosition(targetPosition);
-
         }
+
         protected override void Shoot()
         {
 
@@ -52,11 +60,8 @@ namespace ShootEmUp
             {
                 OnPlayerShoot?.Invoke(_bullet.SetupBullet(firePoint, this));
 
-              //  bulletManager.SpawnBullet(_bullet.SetupBullet(firePoint, this));
-
                 _fireRequired = false;
             }
-
         }
     }
 }

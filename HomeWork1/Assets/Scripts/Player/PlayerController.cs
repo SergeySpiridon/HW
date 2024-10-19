@@ -19,7 +19,7 @@ namespace ShootEmUp
 
         private void Start() 
         {
-            this.character.OnHealthEmpty += _ => Time.timeScale = 0;
+         //   this.character.OnHealthEmpty += _ => Time.timeScale = 0;
 
             character.OnPlayerShoot += bulletManager.SpawnBullet;
             enemyManager.OnEnemyShoot += bulletManager.SpawnBullet;

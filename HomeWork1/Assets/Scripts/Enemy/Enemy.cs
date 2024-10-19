@@ -5,29 +5,27 @@ namespace ShootEmUp
 {
     public sealed class Enemy : Entity
     {
-        public delegate void FireHandler(Vector2 position, Vector2 direction);
-        
-        public event FireHandler OnFire;
+
+        public delegate Transform TransformHandler();
+        public event TransformHandler OnPlayerFound;
+
+        public event Action<BallLightning> OnEnemyShoot;
 
         [SerializeField]
         private float countdown;
 
-        [NonSerialized]
-        public Player target;
+        private IBullet _bullet;
 
         private Vector2 destination;
         private float currentTime;
         private bool isPointReached;
+        private bool _availableShoot;
+        private Player _player;
 
-        public void Reset()
+        private void Start()
         {
-            this.currentTime = this.countdown;
-        }
-        
-        public void SetDestination(Vector2 endPoint)
-        {
-            this.destination = endPoint;
-            this.isPointReached = false;
+            _player = FindObjectOfType<Player>();
+            _bullet = GetComponent<BallLightning>();
         }
 
         private void FixedUpdate()
@@ -41,6 +39,19 @@ namespace ShootEmUp
                 Move();
             }
         }
+        public void Reset()
+        {
+            this.currentTime = this.countdown;
+        }
+
+        public void SetDestination(Vector2 endPoint)
+        {
+            this.destination = endPoint;
+            this.isPointReached = false;
+        }
+
+        public void ChangeAvailableShoot() =>
+            _availableShoot = false;
 
         protected override void Move()
         {
@@ -58,19 +69,34 @@ namespace ShootEmUp
 
         protected override void Shoot()
         {
-            if (this.target.health <= 0)
+            if (_availableShoot)
+            {
                 return;
+
+            }
 
             this.currentTime -= Time.fixedDeltaTime;
             if (this.currentTime <= 0)
             {
                 Vector2 startPosition = this.firePoint.position;
-                Vector2 vector = (Vector2)this.target.transform.position - startPosition;
+                // Debug.Log(_player.GetPosition().position);
+                //Debug.Log(OnPlayerFound?.Invoke().position);
+                //Vector2 vector = (Vector2)OnPlayerFound?.Invoke().position - startPosition;
+                Vector2 vector = (Vector2)_player.GetPosition().position - startPosition;
+
                 Vector2 direction = vector.normalized;
-                this.OnFire?.Invoke(startPosition, direction);
+                OnFire(startPosition, direction);
 
                 this.currentTime += this.countdown;
             }
         }
+        private void OnFire(Vector2 position, Vector2 direction)
+        {
+            OnEnemyShoot?.Invoke(_bullet.SetupBullet(position, direction * 2, this));
+
+           // Debug.Log("33");
+
+        }
+
     }
 }

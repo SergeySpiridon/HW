@@ -2,16 +2,12 @@
 
 namespace ShootEmUp
 {
-    public class BallLightning : MonoBehaviour, IBullet
+    public class BallLightning : Bullet, IBullet
     {
-        public Vector2 position;
-        public Color color;
-        //PhysicsLayer.PLAYER_BULLET = 14
-        //PhysicsLayer.ENEMY_BULLET = 13,
-        public int physicsLayer;
-        public int damage;
-        public bool isPlayer;
-        public Vector2 velocity;
+        protected override void OnCollisionEnter2D(Collision2D collision)
+        {
+            base.OnCollisionEnter2D(collision);
+        }
 
         public BallLightning SetupBullet<T>(Transform entity, T owner) where T : class
         {

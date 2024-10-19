@@ -9,6 +9,8 @@ namespace ShootEmUp
 {
     public sealed class EnemyManager : MonoBehaviour
     {
+        [SerializeField]
+        private PlayerAndEnemyController _controller;
 
         public event Action<BallLightning> OnEnemyShoot;
         
@@ -19,9 +21,6 @@ namespace ShootEmUp
 
         [SerializeField]
         private Transform[] attackPositions;
-        
-        [SerializeField]
-        private Player character;
 
         [SerializeField]
         private Transform worldTransform;
@@ -31,9 +30,6 @@ namespace ShootEmUp
 
         [SerializeField]
         private Enemy prefab;
-        
-        [SerializeField]
-        private BulletManager _bulletSystem;
         
         private readonly HashSet<Enemy> m_activeEnemies = new();
         private readonly Queue<Enemy> enemyPool = new();
@@ -45,6 +41,7 @@ namespace ShootEmUp
             for (var i = 0; i < 7; i++)
             {
                 Enemy enemy = Instantiate(this.prefab, this.container);
+
                 this.enemyPool.Enqueue(enemy);
             }
 
@@ -68,12 +65,8 @@ namespace ShootEmUp
 
                 Transform attackPosition = this.RandomPoint(this.attackPositions);
                 enemy.SetDestination(attackPosition.position);
-                enemy.target = this.character;
 
-                if (this.m_activeEnemies.Count < 5 && this.m_activeEnemies.Add(enemy))
-                {
-                    enemy.OnFire += this.OnFire;
-                }
+                m_activeEnemies.Add(enemy);
             }
         }
 
@@ -83,7 +76,6 @@ namespace ShootEmUp
             {
                 if (enemy.health <= 0)
                 {
-                    enemy.OnFire -= this.OnFire;
                     enemy.transform.SetParent(this.container);
 
                     m_activeEnemies.Remove(enemy);
@@ -91,26 +83,11 @@ namespace ShootEmUp
                 }
             }
         }
-
-        private void OnFire(Vector2 position, Vector2 direction)
-        {
-            OnEnemyShoot?.Invoke(_bullet.SetupBullet(position, direction * 2, this));
-
-            Debug.Log("33");
-            //_bulletSystem.SpawnBullet(
-            //    position,
-            //    Color.red,
-            //    (int) PhysicsLayer.ENEMY_BULLET,
-            //    1,
-            //    false,
-            //    direction * 2
-            //);
-        }
-
         private Transform RandomPoint(Transform[] points)
         {
             int index = Random.Range(0, points.Length);
             return points[index];
         }
+        
     }
 }

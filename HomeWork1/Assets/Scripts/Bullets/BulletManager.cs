@@ -23,6 +23,8 @@ namespace ShootEmUp
 
         private void Awake()
         {
+            prefab.OnCollisionEntered += RemoveBullet;
+
             for (var i = 0; i < 10; i++)
             {
                 Bullet bullet = Instantiate(this.prefab, this.container);
@@ -65,55 +67,19 @@ namespace ShootEmUp
 
             if (m_activeBullets.Add(bullet))
             {
-                bullet.OnCollisionEntered += OnBulletCollision;
             }
-        }
-
-        private void OnBulletCollision(Bullet bullet, Collision2D collision)
-        {
-            this.DealDamage(bullet, collision.gameObject);
-            this.RemoveBullet(bullet);
         }
 
         private void RemoveBullet(Bullet bullet)
         {
+            Debug.Log(bullet);
+            prefab.OnCollisionEntered -= RemoveBullet;
+
             if (this.m_activeBullets.Remove(bullet))
             {
-                bullet.OnCollisionEntered -= this.OnBulletCollision;
+               // bullet.OnCollisionEntered -= this.OnBulletCollision;
                 bullet.transform.SetParent(this.container);
                 this.m_bulletPool.Enqueue(bullet);
-            }
-        }
-
-        private void DealDamage(Bullet bullet, GameObject other)
-        {
-            int damage = bullet.damage;
-            if (damage <= 0)
-                return;
-
-            if (other.TryGetComponent(out Player player))
-            {
-                if (bullet.isPlayer != player.isPlayer)
-                {
-                    if (player.health <= 0)
-                        return;
-
-                    player.health = Mathf.Max(0, player.health - damage);
-                    player.OnHealthChanged?.Invoke(player, player.health);
-
-                    if (player.health <= 0)
-                        player.OnHealthEmpty?.Invoke(player);
-                }
-            }
-            else if (other.TryGetComponent(out Enemy enemy))
-            {
-                if (bullet.isPlayer != enemy.isPlayer)
-                {
-                    if (enemy.health > 0)
-                    {
-                        enemy.health = Mathf.Max(0, enemy.health - damage);
-                    }
-                }
             }
         }
     }
